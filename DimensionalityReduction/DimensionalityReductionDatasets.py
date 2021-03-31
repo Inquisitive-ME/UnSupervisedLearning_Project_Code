@@ -17,7 +17,7 @@ get_noisy_nonlinear_with_non_noisy_labels()
 
 
 def get_faces_pca():
-    pca_best_num_components = 62
+    pca_best_num_components = 98
     print("Running PCA for {} components".format(pca_best_num_components))
     pca = PCA(n_components=pca_best_num_components)
     pca.fit(X_train_faces)
@@ -27,7 +27,7 @@ def get_faces_pca():
 
 
 def get_gnnl_pca():
-    pca_best_num_components = 5
+    pca_best_num_components = 6
     print("Running PCA for {} components".format(pca_best_num_components))
     pca = PCA(n_components=pca_best_num_components)
     pca.fit(X_train_gnnl)
@@ -37,7 +37,7 @@ def get_gnnl_pca():
 
 
 def get_faces_ica():
-    best_ica_components = 188
+    best_ica_components = X_train_faces.shape[1]
     ica = FastICA(random_state=42, max_iter=500)
     print("Running ICA for {} components".format(best_ica_components))
     ica.set_params(n_components=best_ica_components)
@@ -47,11 +47,11 @@ def get_faces_ica():
     X_train_faces_ica_df = pd.DataFrame(X_train_faces_ica)
     ica_kurt = X_train_faces_ica_df.kurt(axis=0)
 
-    return X_train_faces_ica[:, ica_kurt > 7], X_test_faces_ica[:, ica_kurt > 7]
+    return X_train_faces_ica[:, ica_kurt > 6], X_test_faces_ica[:, ica_kurt > 6]
 
 
 def get_gnnl_ica():
-    best_ica_components = 10
+    best_ica_components = X_train_gnnl.shape[1]
     ica = FastICA(random_state=42, max_iter=500)
     print("Running ICA for {} components".format(best_ica_components))
     ica.set_params(n_components=best_ica_components)
@@ -64,13 +64,13 @@ def get_gnnl_ica():
 
 
 def get_faces_random_projection():
-    transformer = random_projection.GaussianRandomProjection(n_components=54, random_state=9)
+    transformer = random_projection.GaussianRandomProjection(n_components=X_train_faces.shape[1]//2, random_state=9)
     transformer.fit(X_train_faces)
     return transformer.transform(X_train_faces), transformer.transform(X_test_faces)
 
 
 def get_gnnl_random_projection():
-    transformer = random_projection.GaussianRandomProjection(n_components=5, random_state=9)
+    transformer = random_projection.GaussianRandomProjection(n_components=X_train_gnnl.shape[1]//2, random_state=9)
     transformer.fit(X_train_gnnl)
     return transformer.transform(X_train_gnnl), transformer.transform(X_test_gnnl)
 

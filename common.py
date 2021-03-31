@@ -419,19 +419,37 @@ def plot_silhouette_em(X, best_k, DATASET, xlim):
     plt.tight_layout()
     plt.show()
 
-def plot_pca_component_selection(X, num_features, DATASET, x_tick_spacing=20, ax2_y_tick_spacing=0.005):
+def plot_pca_component_selection(X, num_features, DATASET, explained_variance_threshold=0.9, x_tick_spacing=20, ax2_y_tick_spacing=0.005):
+    fontsize = 16
+    pca_reconstruction_error = []
     pca = PCA(n_components=num_features)
     pca.fit(X)
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=default_figure_size, sharey=False)
     fig.suptitle("{} Dataset PCA Component Selection".format(DATASET), fontsize=fontsize)
     x = [i for i in range(pca.n_components)]
 
-    kneedle = KneeLocator(x, np.cumsum(pca.explained_variance_ratio_), S=1.0, curve="concave", direction="increasing")
-    ax1.axvline(x=kneedle.knee, color='k', linestyle='--', label="Maximum Curvature = {}".format(kneedle.knee))
-    ax1.axvline(x=np.argmax(np.cumsum(pca.explained_variance_ratio_) > 0.8), color='b', linestyle='--',
-                label="80% Explained Variance = {}".format(np.argmax(np.cumsum(pca.explained_variance_ratio_) > 0.8)))
+    for n in x:
+        tmp_pca = PCA(n_components=n)
+        X_pca = tmp_pca.fit_transform(X)
 
-    ax1.plot(np.cumsum(pca.explained_variance_ratio_))
+        # https://intellipaat.com/community/22811/pca-projection-and-reconstruction-in-scikit-learn
+        X_projected = tmp_pca.inverse_transform(X_pca)
+        loss = ((X - X_projected) ** 2).mean()
+        pca_reconstruction_error.append(np.sum(loss))
+
+    if pca_reconstruction_error is not None:
+        par1 = ax1.twinx()
+        p3, = par1.plot(x, pca_reconstruction_error, color="orange", label="Reconstruction Error")
+        par1.set_ylabel("Reconstruction Error", fontsize=16)
+
+    # kneedle = KneeLocator(x, np.cumsum(pca.explained_variance_ratio_), S=1.0, curve="concave", direction="increasing")
+    # ax1.axvline(x=kneedle.knee, color='k', linestyle='--', label="Maximum Curvature = {}".format(kneedle.knee))
+
+    num_components_explained_varaince_threshold = np.argmax(np.cumsum(pca.explained_variance_ratio_) > explained_variance_threshold)
+    p2 = ax1.axvline(x=np.argmax(np.cumsum(pca.explained_variance_ratio_) > explained_variance_threshold), color='b', linestyle='--',
+                label="{:.0f}% Explained Variance".format(explained_variance_threshold*100, num_components_explained_varaince_threshold))
+
+    p1, = ax1.plot(np.cumsum(pca.explained_variance_ratio_), label="Explained Variance")
     ax1.set_xlabel('Number of components', fontsize=fontsize)
     ax1.set_ylabel('Explained Variance Ratio', fontsize=fontsize)
     ax1.tick_params(axis='y', size=20)
@@ -441,19 +459,23 @@ def plot_pca_component_selection(X, num_features, DATASET, x_tick_spacing=20, ax
     ax1.grid(True)
     ax1.set_title("Cumulative Explained Variance Vs Number of Components", fontsize=14)
 
+    lines = [p1, p2, p3]
+    ax1.legend(lines, [l.get_label() for l in lines], loc='center right', fontsize=14)
+
     ax2.bar(x=x, height=pca.explained_variance_ratio_)
     ax2.set_xlabel('Number of components', fontsize=fontsize)
+    ax2.set_ylabel('Explained Variance Ratio', fontsize=fontsize)
     ax2.xaxis.set_ticks(x[::x_tick_spacing])
     ax2.set_yticks([i for i in np.arange(0, max(pca.explained_variance_ratio_), ax2_y_tick_spacing)])
     ax2.tick_params(labelsize=16)
     ax2.grid(True)
     ax2.set_title("Explained Variance per Component", fontsize=14)
 
-    ax1.legend(loc='best', fontsize=16)
     plt.tight_layout()
     plt.show()
 
-    print(np.argmax(np.cumsum(pca.explained_variance_ratio_) > 0.8))
+    print("Explained Variance = {:.0f}% Num Componenets: {} ".format(explained_variance_threshold*100, num_components_explained_varaince_threshold))
+    print("Reconstruction Error for Num Components = {} = {}".format(num_components_explained_varaince_threshold, pca_reconstruction_error[num_components_explained_varaince_threshold]))
 
 def plot_ica_selection(x, kurtosis, best_n_components, best_kurtosis, DATASET, ica_reconstruction_error=None, x_tick_spacing=20, ax2_y_ticks=20):
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=default_figure_size, sharey=False)
@@ -463,13 +485,11 @@ def plot_ica_selection(x, kurtosis, best_n_components, best_kurtosis, DATASET, i
 
     ax1.set_xlabel("Independent Components", fontsize=fontsize)
     ax1.set_ylabel("Average Kurtosis", fontsize=fontsize)
-    p2, = ax1.plot(x, kurtosis, 'bo-')
+    p2, = ax1.plot(x, kurtosis, 'bo-', label="Avg Kurtosis")
     ax1.xaxis.set_ticks([i for i in range(min(x), max(x)+x_tick_spacing, x_tick_spacing)])
-    plt.grid(True)
 
     ax1.tick_params(axis='y', size=20)
     ax1.tick_params(labelsize=16)
-#     ax1.yaxis.set_ticks([i for i in np.arange(0,1.1,0.1)])
     ax1.grid(True)
     ax1.set_title("Average Kurtosis Vs Number of Components", fontsize=16)
 
@@ -493,6 +513,5 @@ def plot_ica_selection(x, kurtosis, best_n_components, best_kurtosis, DATASET, i
     ax2.grid(True)
     ax2.set_title("Kurtosis per Component for {} Components".format(best_n_components), fontsize=16)
 
-    ax1.legend(loc='best', fontsize=16)
     plt.tight_layout()
     plt.show()
