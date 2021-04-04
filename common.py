@@ -419,7 +419,7 @@ def plot_silhouette_em(X, best_k, DATASET, xlim):
     plt.tight_layout()
     plt.show()
 
-def plot_pca_component_selection(X, num_features, DATASET, explained_variance_threshold=0.9, x_tick_spacing=20, ax2_y_tick_spacing=0.005):
+def plot_pca_component_selection(X, num_features, DATASET, explained_variance_threshold=0.8, x_tick_spacing=20, ax2_y_tick_spacing=0.005):
     fontsize = 16
     pca_reconstruction_error = []
     pca = PCA(n_components=num_features)
@@ -442,8 +442,8 @@ def plot_pca_component_selection(X, num_features, DATASET, explained_variance_th
         p3, = par1.plot(x, pca_reconstruction_error, color="orange", label="Reconstruction Error")
         par1.set_ylabel("Reconstruction Error", fontsize=16)
 
-    # kneedle = KneeLocator(x, np.cumsum(pca.explained_variance_ratio_), S=1.0, curve="concave", direction="increasing")
-    # ax1.axvline(x=kneedle.knee, color='k', linestyle='--', label="Maximum Curvature = {}".format(kneedle.knee))
+    kneedle = KneeLocator(x, np.cumsum(pca.explained_variance_ratio_), S=1.0, curve="concave", direction="increasing")
+    ax1.axvline(x=kneedle.knee, color='k', linestyle='--', label="Maximum Curvature = {}".format(kneedle.knee))
 
     num_components_explained_varaince_threshold = np.argmax(np.cumsum(pca.explained_variance_ratio_) > explained_variance_threshold)
     p2 = ax1.axvline(x=np.argmax(np.cumsum(pca.explained_variance_ratio_) > explained_variance_threshold), color='b', linestyle='--',

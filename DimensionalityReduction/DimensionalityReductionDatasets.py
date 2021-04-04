@@ -17,7 +17,7 @@ get_noisy_nonlinear_with_non_noisy_labels()
 
 
 def get_faces_pca():
-    pca_best_num_components = 98
+    pca_best_num_components = 61
     print("Running PCA for {} components".format(pca_best_num_components))
     pca = PCA(n_components=pca_best_num_components)
     pca.fit(X_train_faces)
@@ -27,7 +27,7 @@ def get_faces_pca():
 
 
 def get_gnnl_pca():
-    pca_best_num_components = 6
+    pca_best_num_components = 5
     print("Running PCA for {} components".format(pca_best_num_components))
     pca = PCA(n_components=pca_best_num_components)
     pca.fit(X_train_gnnl)
@@ -47,7 +47,7 @@ def get_faces_ica():
     X_train_faces_ica_df = pd.DataFrame(X_train_faces_ica)
     ica_kurt = X_train_faces_ica_df.kurt(axis=0)
 
-    return X_train_faces_ica[:, ica_kurt > 6], X_test_faces_ica[:, ica_kurt > 6]
+    return X_train_faces_ica[:, ica_kurt > 9], X_test_faces_ica[:, ica_kurt > 9]
 
 
 def get_gnnl_ica():
